@@ -59,3 +59,11 @@ Provided by CharmCore: the `Debug.DebugMode` setting (off by default) places the
 - **`BlockFallDamage` as a 0/1 `AddSetting`:** CharmCore offers only numeric settings; 0.5 and above counts as on.
 - **No cooldown:** wear per landing is cost enough.
 
+## Runtime hygiene
+
+- **References and level state:** fixed. `FallTracker` (inside `ButterSideUp`) remembers a fall in progress. `ToastCharm` now overrides `OnLevelEnded` and calls `ButterSideUp.Reset()`, so a fall that was being saved cannot carry into the next level. It still resets whenever the charm is inactive. `FallTracker` holds only numbers, no game objects.
+- **Per-frame work:** the `PlayerAvatar.Update` prefix runs for every avatar but returns on `isLocal` first; inactive, it only resets the tracker (a few assignments). Active, `Step` is allocation-free (a struct result, no collections).
+- **Debug logs:** fixed. The two `LogDebug` lines in `Process` (threshold reached, landing) are now guarded with `if (Charm.DebugMode)`.
+- **Changes to the game:** ok. The only write is `fallDistance = 0` on the frame the fall reaches the tumble threshold, which is the effect itself; nothing persists once the charm stops, and the game recalculates the distance every frame.
+- **Static game objects and Find calls:** none. The plugin's static `Effect` holds the effect object, which holds the charm and the tracker, not game objects.
+- Known limit outside this mod: while the charm is active, CharmCore's `IsActive` and `CharmSetting.Value` build their host-setting key strings on each call; that is CharmCore's code and was left alone.

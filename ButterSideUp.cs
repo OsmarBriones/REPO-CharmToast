@@ -19,6 +19,12 @@ namespace CharmToast
 
 		internal ToastCharm Charm { get; }
 
+		/// <summary>Forgets the fall in progress (called when a level ends).</summary>
+		internal void Reset()
+		{
+			tracker.Reset();
+		}
+
 		internal void Process(PlayerAvatar avatar)
 		{
 			if (avatar == null || !avatar.isLocal)
@@ -43,7 +49,10 @@ namespace CharmToast
 			if (step.ZeroFallDistance)
 			{
 				collision.fallDistance = 0f;
-				Charm.LogDebug("Fall of 8 m reached: tumble request prevented");
+				if (Charm.DebugMode)
+				{
+					Charm.LogDebug("Fall of 8 m reached: tumble request prevented");
+				}
 			}
 
 			if (!step.Landed)
@@ -51,7 +60,10 @@ namespace CharmToast
 				return;
 			}
 
-			Charm.LogDebug($"Landed after a fall of {step.TotalFall:0.#} m (wear: {step.Wear}, game damage would be {step.Damage})");
+			if (Charm.DebugMode)
+			{
+				Charm.LogDebug($"Landed after a fall of {step.TotalFall:0.#} m (wear: {step.Wear}, game damage would be {step.Damage})");
+			}
 			if (step.Wear)
 			{
 				Charm.TryUse();

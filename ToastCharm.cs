@@ -31,5 +31,11 @@ namespace CharmToast
 
 		/// <summary>True when a saved fall also deals no damage (setting 1).</summary>
 		internal bool BlockFallDamage => blockFallDamage.Value >= 0.5f;
+
+		protected override void OnLevelEnded()
+		{
+			// The fall tracker remembers a fall in progress; drop it with the level.
+			CharmToastPlugin.Effect?.Reset();
+		}
 	}
 }
