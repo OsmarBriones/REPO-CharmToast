@@ -33,7 +33,7 @@ Settings are in `com.osmar.CharmToast.cfg` inside `BepInEx/config`, section `Cha
 - `MinFallDistance` (default `8`, from 3 to 50 metres): a saved landing costs wear only when the fall was at least this long. Falls the game would tumble you for are saved for free when shorter; values below 8 behave like 8.
 - `BlockFallDamage` (default `1`, 0 or 1): 1 means a saved fall also deals no damage; 0 means you do not tumble but still take the game's usual fall damage.
 
-Section `Debug`: `DebugMode` (default `false`) places a Toast on the floor in front of you when a level starts (host or singleplayer) and writes extra log lines. For testing.
+Section `Debug`: `DebugMode` (default `false`) places a Toast on the floor in front of you when a level starts (host or singleplayer) and writes extra log lines. For testing. `SpawnNow` (default `false`, needs `DebugMode`): set it to `true` while a level is running to place one right away; it switches itself back off.
 
 ## Issues & Bug Reports
 The official way to report issues, suggest improvements, or submit feedback is by opening an issue on the official GitHub repository:
