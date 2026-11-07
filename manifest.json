@@ -1,0 +1,9 @@
+{
+    "name":  "CharmToast",
+    "version_number":  "1.0.0",
+    "website_url":  "https://github.com/OsmarBriones/REPO-CharmToast",
+    "description":  "Butter Side Up: falls no longer throw you into a tumble. Needs Pockets and CharmCore. Everyone in the lobby needs it.",
+    "dependencies":  [
+                         "BepInEx-BepInExPack-5.4.2304"
+                     ]
+}
