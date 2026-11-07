@@ -30,9 +30,50 @@ public class GameContractTests
 	[TestMethod]
 	public void Valuable_HasTheValueFields()
 	{
-		// TODO: add one RequireField / RequireMethod line for every game member this charm's effect reads, writes or patches,
-		// so a game update that renames or removes one fails here with a clear message.
+		// Wear is applied by CharmCore to the pocketed valuable's value.
 		RequireField("ValuableObject", "dollarValueCurrent");
+	}
+
+	[TestMethod]
+	public void PlayerAvatar_HasTheMembersTheFallHookUses()
+	{
+		// Patched: PlayerAvatar.Update (private, no parameters). Read: isLocal, fallDamageResetState. Used: playerHealth.
+		RequireMethod("PlayerAvatar", "Update", 0);
+		RequireField("PlayerAvatar", "isLocal");
+		RequireField("PlayerAvatar", "fallDamageResetState");
+		RequireField("PlayerAvatar", "playerHealth");
+		// Not touched, but the design depends on them: the code that requests the tumble and the falling flag.
+		RequireField("PlayerAvatar", "falling");
+		RequireMethod("PlayerAvatar", "FallingSet", 1);
+	}
+
+	[TestMethod]
+	public void PlayerController_ExposesTheCollisionController()
+	{
+		RequireField("PlayerController", "instance");
+		RequireField("PlayerController", "CollisionController");
+	}
+
+	[TestMethod]
+	public void PlayerCollisionController_HasTheFallFields()
+	{
+		RequireField("PlayerCollisionController", "fallDistance");
+		RequireField("PlayerCollisionController", "Grounded");
+	}
+
+	[TestMethod]
+	public void PlayerTumble_HasTheCallsTheGameMakesOnAFall()
+	{
+		// The game calls these from PlayerAvatar.Update at 8 m; the charm prevents them by zeroing the distance first.
+		RequireMethod("PlayerTumble", "TumbleRequest", 2);
+		RequireMethod("PlayerTumble", "ImpactHurtSet", 2);
+	}
+
+	[TestMethod]
+	public void PlayerHealth_HasTheHurtMethod()
+	{
+		// Used when BlockFallDamage is off (the fall damage is dealt directly); CharmCore's hook relays on it.
+		RequireMethod("PlayerHealth", "Hurt", 4);
 	}
 
 	// ---- Helpers ----

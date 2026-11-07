@@ -1,5 +1,6 @@
 using BepInEx;
 using CharmCore.Api;
+using HarmonyLib;
 using UnityEngine;
 
 namespace CharmToast
@@ -15,6 +16,9 @@ namespace CharmToast
 
 		internal static new BepInEx.Logging.ManualLogSource Logger { get; private set; } = null!;
 
+		/// <summary>The Butter Side Up effect, reached by the Harmony patch.</summary>
+		internal static ButterSideUp? Effect { get; private set; }
+
 		private void Awake()
 		{
 			Logger = base.Logger;
@@ -23,10 +27,11 @@ namespace CharmToast
 			this.gameObject.transform.parent = null;
 			this.gameObject.hideFlags = HideFlags.HideAndDontSave;
 
-			// Registering binds Enabled, WearPercent, CooldownSeconds and the Debug section (DebugMode) in this mod's config file.
+			// Registering binds Enabled, WearPercent and the Debug section (DebugMode) in this mod's config file.
 			ToastCharm charm = new ToastCharm();
 			CharmsApi.Register(charm, Config);
-			this.gameObject.AddComponent<ButterSideUp>().Charm = charm;
+			Effect = new ButterSideUp(charm);
+			new Harmony(PluginGuid).PatchAll();
 
 			Logger.LogInfo($"{PluginName} {PluginVersion} loaded!");
 		}

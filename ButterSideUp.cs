@@ -1,32 +1,67 @@
-using UnityEngine;
+using CharmToast.Domain;
 
 namespace CharmToast
 {
 	/// <summary>
-	/// Butter Side Up: falls no longer throw you into a tumble.
-	/// TODO: implement the power. Rules every charm follows:
-	/// - Only act while <c>Charm.IsActive</c> (the valuable is in the local player's pocket and everything is on).
-	/// - Call <c>Charm.TryUse()</c> at the moment the power triggers and apply the effect only when it returns true:
-	///   that starts the cooldown and wears the valuable. For wear over time use <c>Charm.TryUse(percent)</c> or <c>Charm.Wear(percent)</c>.
-	/// - Write debug detail with <c>Charm.LogDebug(...)</c>, never with the plugin logger (a test enforces it).
+	/// Butter Side Up: falls no longer throw you into a tumble. <see cref="Process"/> is called by the prefix on
+	/// <c>PlayerAvatar.Update</c> (see Patches/PlayerAvatar_Update_Patch.cs) on the owner's machine, right before the game's own
+	/// fall logic runs. It sets the fall distance back to 0 once it reaches the game's tumble threshold, so the game never asks
+	/// for the tumble, and counts one wear per landing. The detail lives in <see cref="FallTracker"/>.
 	/// </summary>
-	internal sealed class ButterSideUp : MonoBehaviour
+	internal sealed class ButterSideUp
 	{
-		internal ToastCharm Charm { get; set; } = null!;
+		private readonly FallTracker tracker = new FallTracker();
 
-		private void Update()
+		internal ButterSideUp(ToastCharm charm)
 		{
-			if (Charm == null || !Charm.IsActive)
+			Charm = charm;
+		}
+
+		internal ToastCharm Charm { get; }
+
+		internal void Process(PlayerAvatar avatar)
+		{
+			if (avatar == null || !avatar.isLocal)
 			{
 				return;
 			}
 
-			// TODO: detect the moment the power should trigger, then:
-			// if (Charm.TryUse())
-			// {
-			//     ... apply the effect ...
-			//     Charm.LogDebug("Butter Side Up triggered");
-			// }
+			if (!Charm.IsActive)
+			{
+				tracker.Reset();
+				return;
+			}
+
+			PlayerController controller = PlayerController.instance;
+			if (controller == null || controller.CollisionController == null)
+			{
+				return;
+			}
+
+			PlayerCollisionController collision = controller.CollisionController;
+			FallStep step = tracker.Step(collision.fallDistance, collision.Grounded, avatar.fallDamageResetState, Charm.MinFallDistance.Value);
+			if (step.ZeroFallDistance)
+			{
+				collision.fallDistance = 0f;
+				Charm.LogDebug("Fall of 8 m reached: tumble request prevented");
+			}
+
+			if (!step.Landed)
+			{
+				return;
+			}
+
+			Charm.LogDebug($"Landed after a fall of {step.TotalFall:0.#} m (wear: {step.Wear}, game damage would be {step.Damage})");
+			if (step.Wear)
+			{
+				Charm.TryUse();
+			}
+
+			if (!Charm.BlockFallDamage && step.Damage > 0 && avatar.playerHealth != null)
+			{
+				// The game arms its fall damage only through the tumble, which is no longer requested, so the same amount is dealt here.
+				avatar.playerHealth.Hurt(step.Damage, true);
+			}
 		}
 	}
 }
